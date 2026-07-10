@@ -18,20 +18,25 @@ jobs:
           repository: dhruvkej9/daily-activity
           token: ${{ secrets.PAT }}
 
-      - name: Checkout target repo
-        uses: actions/checkout@v4
-        with:
-          repository: dhruvkej9/contributions
-          path: target
-          token: ${{ secrets.PAT }}
-
-      - name: Create random daily commits in target repo
+      - name: Create random daily commits across target repos
         env:
           PAT: ${{ secrets.PAT }}
         run: |
           set -e
+          REPOS=(
+            "dhruvkej9/portfolio"
+            "dhruvkej9/StyleStreet"
+            "dhruvkej9/Aim-Tracker"
+            "dhruvkej9/terminator"
+            "dhruvkej9/voice-sandwich-demo"
+          )
+          TARGET=${REPOS[$RANDOM % ${#REPOS[@]}]}
+          REPO_NAME=$(echo "$TARGET" | cut -d'/' -f2)
+
+          git clone --depth 1 "https://x-access-token:${PAT}@github.com/${TARGET}.git" "target"
           cd target
-          mkdir -p notes
+
+          mkdir -p activity-log
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
@@ -42,12 +47,12 @@ jobs:
           MESSAGES=(
             "docs: add ${DATE} learnings"
             "docs: log daily progress for ${DATE}"
-            "chore: sync daily notes"
+            "chore: sync activity log"
             "feat: add ${DATE} activity entry"
-            "refactor: update note index"
+            "refactor: update activity index"
             "update: ${DATE} daily reflection"
             "docs: capture ${DATE} insights"
-            "style: format daily notes"
+            "style: format activity log"
             "docs: ${DATE} summary"
             "chore: archive ${DATE} progress"
           )
@@ -66,17 +71,18 @@ jobs:
           COUNT=${COMMIT_COUNTS[$RANDOM % ${#COMMIT_COUNTS[@]}]}
 
           for i in $(seq 1 $COUNT); do
-            NOTE_FILE="notes/${DATE}-${i}.md"
+            NOTE_FILE="activity-log/${DATE}-${i}.md"
             THOUGHT=${THOUGHTS[$RANDOM % ${#THOUGHTS[@]}]}
             MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
             cat > "$NOTE_FILE" <<EOF
-          # Note ${i} for ${DAY}, ${DATE}
+          # Activity ${i} for ${DAY}, ${DATE}
 
           - **Created at:** ${TIME}
+          - **Project:** ${REPO_NAME}
           - **Thought:** ${THOUGHT}
           EOF
             git add "$NOTE_FILE"
             git commit -m "$MSG"
           done
 
-          git push "https://x-access-token:${PAT}@github.com/dhruvkej9/contributions.git" main
+          git push "https://x-access-token:${PAT}@github.com/${TARGET}.git" main

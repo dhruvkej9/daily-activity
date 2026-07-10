@@ -6,20 +6,35 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source repo
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          repository: dhruvkej9/daily-activity
+          token: ${{ secrets.PAT }}
 
-      - name: Update README and create random daily notes
+      - name: Checkout target repo
+        uses: actions/checkout@v4
+        with:
+          repository: dhruvkej9/contributions
+          path: target
+          token: ${{ secrets.PAT }}
+
+      - name: Create random daily commits in target repo
+        env:
+          PAT: ${{ secrets.PAT }}
         run: |
           set -e
+          cd target
           mkdir -p notes
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
           DATE=$(date -u '+%Y-%m-%d')
           TIME=$(date -u '+%H:%M:%S UTC')
           DAY=$(date -u '+%A')
@@ -53,7 +68,7 @@ jobs:
           for i in $(seq 1 $COUNT); do
             NOTE_FILE="notes/${DATE}-${i}.md"
             THOUGHT=${THOUGHTS[$RANDOM % ${#THOUGHTS[@]}]}
-            MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+            MSG=${MESSAGES[$RANDOM % ${#COMMIT_COUNTS[@]}]}
             cat > "$NOTE_FILE" <<EOF
           # Note ${i} for ${DAY}, ${DATE}
 
@@ -61,26 +76,7 @@ jobs:
           - **Thought:** ${THOUGHT}
           EOF
             git add "$NOTE_FILE"
-            git -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-                -c user.name="github-actions[bot]" \
-                commit -m "$MSG"
+            git commit -m "$MSG"
           done
 
-          TOTAL=$(ls notes/*.md 2>/dev/null | wc -l)
-          cat > README.md <<EOF
-          # Daily Activity Log
-
-          This repository is automatically updated every day.
-
-          - **Last updated:** ${DATE} ${TIME}
-          - **Day:** ${DAY}
-          - **Notes created today:** ${COUNT}
-          - **Total notes so far:** ${TOTAL}
-
-          ${THOUGHT}
-          EOF
-
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "docs: refresh README for $(date -u +%Y-%m-%d)"
-          file_pattern: README.md
+          git push "https://x-access-token:${PAT}@github.com/dhruvkej9/contributions.git" main

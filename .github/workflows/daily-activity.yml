@@ -37,8 +37,8 @@ jobs:
           cd target
 
           mkdir -p activity-log
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
+          git config user.email "96516827+dhruvkej9@users.noreply.github.com"
+          git config user.name "dhruvkej9"
 
           DATE=$(date -u '+%Y-%m-%d')
           TIME=$(date -u '+%H:%M:%S UTC')

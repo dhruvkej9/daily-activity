@@ -1,0 +1,38 @@
+name: Daily README Update
+
+on:
+  schedule:
+    - cron: '30 0 * * *'   # 6:00 AM IST daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch daily quote and update README
+        run: |
+          DATE=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          DAY=$(date -u '+%A, %B %d')
+          QUOTE=$(curl -s https://api.quotable.io/random | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{d[\"content\"]} — {d[\"author\"]}')" || echo 'Stay consistent.')
+          cat > README.md <<EOF
+          # Daily Activity Log
+
+          This repository is automatically updated every day.
+
+          - **Last updated:** ${DATE}
+          - **Day:** ${DAY}
+          - **Quote of the day:** ${QUOTE}
+          - **Today's note:** \`notes/$(date -u +%Y-%m-%d).md\`
+
+          Stay consistent. 🚀
+          EOF
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: daily README update for $(date -u +%Y-%m-%d)"
+          file_pattern: README.md

@@ -24,6 +24,19 @@ jobs:
           TIME=$(date -u '+%H:%M:%S UTC')
           DAY=$(date -u '+%A')
 
+          MESSAGES=(
+            "docs: add ${DATE} learnings"
+            "docs: log daily progress for ${DATE}"
+            "chore: sync daily notes"
+            "feat: add ${DATE} activity entry"
+            "refactor: update note index"
+            "update: ${DATE} daily reflection"
+            "docs: capture ${DATE} insights"
+            "style: format daily notes"
+            "docs: ${DATE} summary"
+            "chore: archive ${DATE} progress"
+          )
+
           THOUGHTS=(
             "Small steps every day."
             "Consistency beats intensity."
@@ -40,6 +53,7 @@ jobs:
           for i in $(seq 1 $COUNT); do
             NOTE_FILE="notes/${DATE}-${i}.md"
             THOUGHT=${THOUGHTS[$RANDOM % ${#THOUGHTS[@]}]}
+            MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
             cat > "$NOTE_FILE" <<EOF
           # Note ${i} for ${DAY}, ${DATE}
 
@@ -49,7 +63,7 @@ jobs:
             git add "$NOTE_FILE"
             git -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
                 -c user.name="github-actions[bot]" \
-                commit -m "chore: daily note ${i}/${COUNT} for ${DATE}"
+                commit -m "$MSG"
           done
 
           TOTAL=$(ls notes/*.md 2>/dev/null | wc -l)
@@ -68,5 +82,5 @@ jobs:
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "docs: daily README update for $(date -u +%Y-%m-%d)"
+          commit_message: "docs: refresh README for $(date -u +%Y-%m-%d)"
           file_pattern: README.md

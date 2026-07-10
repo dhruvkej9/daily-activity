@@ -68,7 +68,7 @@ jobs:
           for i in $(seq 1 $COUNT); do
             NOTE_FILE="notes/${DATE}-${i}.md"
             THOUGHT=${THOUGHTS[$RANDOM % ${#THOUGHTS[@]}]}
-            MSG=${MESSAGES[$RANDOM % ${#COMMIT_COUNTS[@]}]}
+            MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
             cat > "$NOTE_FILE" <<EOF
           # Note ${i} for ${DAY}, ${DATE}
 

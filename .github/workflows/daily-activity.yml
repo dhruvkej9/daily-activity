@@ -16,14 +16,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Update README and daily note
+      - name: Update README and create random daily notes
         run: |
           set -e
           mkdir -p notes
           DATE=$(date -u '+%Y-%m-%d')
           TIME=$(date -u '+%H:%M:%S UTC')
           DAY=$(date -u '+%A')
-          NOTE_FILE="notes/${DATE}.md"
 
           THOUGHTS=(
             "Small steps every day."
@@ -34,15 +33,26 @@ jobs:
             "Progress is progress."
             "Done is better than perfect."
           )
-          THOUGHT=${THOUGHTS[$RANDOM % ${#THOUGHTS[@]}]}
 
-          cat > "$NOTE_FILE" <<EOF
-          # Note for ${DAY}, ${DATE}
+          COMMIT_COUNTS=(2 3 4)
+          COUNT=${COMMIT_COUNTS[$RANDOM % ${#COMMIT_COUNTS[@]}]}
+
+          for i in $(seq 1 $COUNT); do
+            NOTE_FILE="notes/${DATE}-${i}.md"
+            THOUGHT=${THOUGHTS[$RANDOM % ${#THOUGHTS[@]}]}
+            cat > "$NOTE_FILE" <<EOF
+          # Note ${i} for ${DAY}, ${DATE}
 
           - **Created at:** ${TIME}
           - **Thought:** ${THOUGHT}
           EOF
+            git add "$NOTE_FILE"
+            git -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+                -c user.name="github-actions[bot]" \
+                commit -m "chore: daily note ${i}/${COUNT} for ${DATE}"
+          done
 
+          TOTAL=$(ls notes/*.md 2>/dev/null | wc -l)
           cat > README.md <<EOF
           # Daily Activity Log
 
@@ -50,13 +60,13 @@ jobs:
 
           - **Last updated:** ${DATE} ${TIME}
           - **Day:** ${DAY}
-          - **Today's note:** [${NOTE_FILE}](${NOTE_FILE})
-          - **Total notes so far:** $(ls notes/*.md 2>/dev/null | wc -l)
+          - **Notes created today:** ${COUNT}
+          - **Total notes so far:** ${TOTAL}
 
           ${THOUGHT}
           EOF
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: daily activity for $(date -u +%Y-%m-%d)"
-          file_pattern: README.md notes/*.md
+          commit_message: "docs: daily README update for $(date -u +%Y-%m-%d)"
+          file_pattern: README.md

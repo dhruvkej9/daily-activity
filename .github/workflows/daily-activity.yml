@@ -85,4 +85,4 @@ jobs:
             git commit -m "$MSG"
           done
 
-          git push "https://x-access-token:${PAT}@github.com/${TARGET}.git" main
+          git push "https://x-access-token:${PAT}@github.com/${TARGET}.git" HEAD
